@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 import { useContext, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import client from "../api/client";
 import { Article } from "../interfaces/Article";
 import { AuthContext } from "../context/AuthContext";
@@ -10,8 +10,6 @@ import ArticleCard from "../components/ArticleCard";
 export default function HomePage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const { logout } = useContext(AuthContext)!;
-  const [hover, setHover] = useState(false);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
 
   const hideScrollBarCss = css`
     &::-webkit-scrollbar {

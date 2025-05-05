@@ -8,8 +8,8 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<string>("client");
   const [error, setError] = useState<string | null>(null);
+  const role = "client";
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {

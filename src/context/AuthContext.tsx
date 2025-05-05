@@ -1,6 +1,5 @@
 import { createContext, ReactNode, useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
-import client from "../api/client";
 import { AuthContextType, JwtPayload } from "../interfaces/Authentication";
 
 export const AuthContext = createContext<AuthContextType | undefined>(

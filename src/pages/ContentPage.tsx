@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import client from "../api/client";
 import { socket } from "../api/socket";
 import { css } from "@emotion/react";
@@ -113,9 +113,7 @@ export default function ContentPage() {
             if (blk.type === "text") {
               return (
                 <div key={i} className="space-y-2">
-                  <h2 className="text-2xl font-semibold">
-                    {blk.data.header}
-                  </h2>
+                  <h2 className="text-2xl font-semibold">{blk.data.header}</h2>
                   <p className="leading-relaxed">{blk.data.body}</p>
                 </div>
               );
