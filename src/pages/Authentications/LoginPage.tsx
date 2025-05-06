@@ -18,6 +18,7 @@ export default function Login() {
     e.preventDefault();
     setError(null);
     try {
+      console.log("Login ne");
       const { data } = await client.post("/auth/login", { email, password });
       login(data.accessToken);
       navigate("/");

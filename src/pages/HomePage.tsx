@@ -19,8 +19,9 @@ export default function HomePage() {
   `;
 
   useEffect(() => {
+    console.log("HomePage");
     client
-      .get<Article[]>("/contents?status=published")
+      .get<Article[]>("/contents")
       .then((res) => setArticles(res.data))
       .catch(console.error);
   }, []);
@@ -51,8 +52,8 @@ export default function HomePage() {
       {/* Content List */}
       <div className="h-9/10 w-full overflow-auto" css={hideScrollBarCss}>
         <ul className="flex flex-wrap justify-center gap-4 w-full p-10">
-          {articles.map((a) => (
-            <ArticleCard a={a} />
+          {articles.map((a, index) => (
+            <ArticleCard key={index} a={a} />
           ))}
           {articles.length === 0 && (
             <li className="text-gray-500">No articles yet.</li>

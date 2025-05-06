@@ -10,6 +10,7 @@ import ProfilePage from "./pages/Users/ProfilePage";
 
 export default function AppRoutes() {
   const { user } = useContext(AuthContext)!;
+  const token = localStorage.getItem("token");
 
   return (
     <BrowserRouter>
@@ -19,7 +20,9 @@ export default function AppRoutes() {
         {/* Protected routes */}
         <Route
           path="/*"
-          element={user ? <Authenticated /> : <Navigate to="/login" replace />}
+          element={
+            user || token ? <Authenticated /> : <Navigate to="/login" replace />
+          }
         />
       </Routes>
     </BrowserRouter>
