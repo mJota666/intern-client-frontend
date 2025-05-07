@@ -20,6 +20,7 @@ export default function Login() {
     try {
       console.log("Login ne");
       const { data } = await client.post("/auth/login", { email, password });
+      console.log(data);
       login(data.accessToken);
       navigate("/");
     } catch (err: any) {
