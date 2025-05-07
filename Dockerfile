@@ -14,7 +14,7 @@ COPY tsconfig*.json ./
 COPY . .
 
 # Install dependencies
-RUN npm install
+RUN npm install --legacy-peer-deps 
 
 # Build the client frontend
 RUN npm run build
