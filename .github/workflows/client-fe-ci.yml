@@ -1,59 +1,84 @@
-name: Client Frontend CI/CD Pipeline
+name: Client Frontend CI/CD
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "package.json"
+      - "package-lock.json"
+      - "Dockerfile"
+      - ".github/workflows/client-frontend-ci.yml"
 
 jobs:
-  build_and_deploy:
+  build-and-push:
+    name: Build & Push Image
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: "20"
+          cache: "npm"
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install & build
+        run: |
+          npm ci
+          npm run build
 
-      - name: Run tests
-        run: npm test
+      - name: Log in to Docker registry
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build the project
-        run: npm run build
+      - name: Build Docker image
+        run: |
+          IMAGE=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/client-frontend
+          TAG=latest
+          docker build -t $IMAGE:$TAG .
 
-      - name: Set up SSH agent
+      - name: Push Docker image
+        run: |
+          IMAGE=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/client-frontend
+          TAG=latest
+          docker push $IMAGE:$TAG
+
+  deploy:
+    name: Deploy to Droplet
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up SSH
         uses: webfactory/ssh-agent@v0.5.3
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Install Docker and Fix Dependencies
+      - name: Add Droplet to known_hosts
         run: |
-          # Remove existing containerd if there's a conflict
-          sudo apt-get remove --purge -y containerd
-          # Update package lists
-          sudo apt-get update --fix-missing
-          # Install containerd.io without conflicts
-          sudo apt-get install -y containerd.io
-          # Install Docker using the official script (this will install both Docker and dependencies)
-          curl -fsSL https://get.docker.com -o get-docker.sh
-          sudo sh get-docker.sh
-          # Enable and start Docker service
-          sudo systemctl enable docker
-          sudo systemctl start docker
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to Droplet
+      - name: Pull & restart client-frontend
+        env:
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          CLIENT_PATH: ${{ secrets.CLIENT_PATH }}
+          IMAGE: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/client-frontend
         run: |
-          ssh -o StrictHostKeyChecking=no alsp@minhnguyen28.workspace.opstech.org << 'EOF'
-            cd /home/alsp/intern-client-frontend
-            git pull origin main  # Pull the latest changes
-            git log -1  # Show the latest commit
-            sudo docker-compose down -v  # Stop containers and remove volumes
-            sudo docker-compose build --no-cache  # Force rebuild without cache
-            sudo docker-compose up -d  # Start containers with the updated build
+          ssh -o ServerAliveInterval=60 $DEPLOY_USER@$DEPLOY_HOST << EOF
+            cd $CLIENT_PATH
+
+            # Pull the latest image
+            sudo docker pull ${IMAGE}:latest
+
+            # Restart only the client-frontend container
+            sudo docker-compose up -d --no-deps client-frontend
           EOF

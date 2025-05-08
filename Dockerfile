@@ -1,32 +1,24 @@
-# Use an official Node.js image
-FROM node:20
-
-# Set the working directory inside the container
+# ─── Builder Stage ────────────────────────────────────────────────────────────
+FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy package.json and package-lock.json to install dependencies
-COPY package*.json ./
+# Install deps, cached until package*.json changes
+COPY package*.json tsconfig*.json ./
+RUN npm ci
 
-# Copy TypeScript configuration files
-COPY tsconfig*.json ./
-
-# Copy the rest of your application files into the container
+# Copy source & build
 COPY . .
-
-# Clean the node_modules if they exist (optional but recommended)
-RUN rm -rf node_modules
-
-# Install dependencies inside the container
-RUN npm install --legacy-peer-deps
-
-# Build the admin frontend
 RUN npm run build
 
-# Install a simple static file server globally
+# ─── Runtime Stage ────────────────────────────────────────────────────────────
+FROM node:20-alpine AS runtime
+WORKDIR /app
+
+# Only copy production files
+COPY --from=builder /app/dist ./dist
+
+# Install static file server
 RUN npm install -g serve
 
-# Expose port 8082 for the admin frontend
 EXPOSE 8082
-
-# Command to serve the app using the "serve" command on port 8082
-CMD ["serve", "-s", "dist", "-l", "8082"]
+CMD ["serve", "-s", "dist", "-l", "8081"]
