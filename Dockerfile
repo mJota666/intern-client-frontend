@@ -21,4 +21,4 @@ COPY --from=builder /app/dist ./dist
 RUN npm install -g serve
 
 EXPOSE 8082
-CMD ["serve", "-s", "dist", "-l", "8081"]
+CMD ["serve", "-s", "dist", "-l", "8082"]
