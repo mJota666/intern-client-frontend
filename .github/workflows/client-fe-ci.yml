@@ -75,7 +75,7 @@ jobs:
         run: |
           ssh -o ServerAliveInterval=60 $DEPLOY_USER@$DEPLOY_HOST << EOF
             cd $CLIENT_PATH
-
+            git pull origin main
             # Pull the latest image
             sudo docker pull ${IMAGE}:latest
 
