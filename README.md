@@ -68,7 +68,3 @@ Mở trình duyệt và truy cập `http://localhost:3000` (port mặc định c
   ```bash
   export VITE_API_URL=http://localhost:8080
   ```
-
-## License
-
-MIT License
